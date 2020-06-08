@@ -3,14 +3,15 @@ bits 16
 
 ;precompiler constant
 %define entityArraySize 128
-;Let's begin by going into graphic mode
-call initGraphics
 
-;Now let's register some custom interrupt handlers
-call registerInterruptHandlers
+	;Let's begin by going into graphic mode
+	call initGraphics
 
-;init map
-call initMap
+	;Now let's register some custom interrupt handlers
+	call registerInterruptHandlers
+
+	;init map
+	call initMap
 
 ;Main game loop
 gameLoop:
@@ -18,20 +19,22 @@ gameLoop:
 	
 	;MODULAR DRAWING CODE
 	mov di, entityArray
+	
 	add di, 2 ;skip drawing player
 	.nextEntity:
-	cmp [di], word 0
-	je .skip
-		pusha
-		mov cx, [player+2] ;player x to draw relative
-		mov dx, [player+4] ;player z to draw relative
-		mov di, [di]
-		call drawEntity
-		popa
+		cmp [di], word 0
+		je .skip
+	pusha
+	mov cx, [player+2] ;player x to draw relative
+	mov dx, [player+4] ;player z to draw relative
+	mov di, [di]
+	call drawEntity
+	popa
+
 	.skip:
-	add di, 2
-	cmp di, entityArray+((entityArraySize-1)*2) ;confirm that di is still pointing into the entityArray
-	jl .nextEntity
+		add di, 2
+		cmp di, entityArray+((entityArraySize-1)*2) ;confirm that di is still pointing into the entityArray
+		jl .nextEntity
 	
 	call drawMap
 	
@@ -102,31 +105,31 @@ checkForCollision:
 	pusha                       ;save current state
 	mov si, entityArray         ;set si to entityArray
 	.whileLoop:
-	mov bx, word [si]   ;read entityArray entry
-	test bx, bx         ;if entry is zero => end of array
-	jz .whileSkip
-	cmp bx, di          ;if entity is equal to di => next entity to not collide with it self
-	jz .whileSkip
+		mov bx, word [si]   ;read entityArray entry
+		test bx, bx         ;if entry is zero => end of array
+		jz .whileSkip
+		cmp bx, di          ;if entity is equal to di => next entity to not collide with it self
+		jz .whileSkip
 	
 	mov ax, word [bx+2] ;ax = entity x
 	sub ax, 8           ;subtract 8 because of hitbox
 	cmp ax, cx ; (entityX-8 <= playerX)
-		jg .whileSkip
+	jg .whileSkip
 		
 	mov ax, word [bx+2] ;ax = entity x
 	add ax, 8           ;add 8 because of hitbox
 	cmp ax, cx ; (entityX+8 > playerX)
-		jle .whileSkip
+	jle .whileSkip
 
 	mov ax, word [bx+4] ;ax = entity z
 	sub ax, 10          ;subtract 10 because of hitbox
 	cmp ax, dx ; (entityZ-10 <= playerZ)
-		jg .whileSkip
+	jg .whileSkip
 		
 	mov ax, word [bx+4] ;ax = entity z
 	add ax, 9           ;subtract 9 because of hitbox
 	cmp ax, dx ; (entityZ+9 > playerZ)
-		jle .whileSkip
+	jle .whileSkip
 		
 	;if we reach this point => actual collision
 	;mov cx, [di+2]         ;set new x pos to current x pos => no movement
@@ -139,10 +142,10 @@ checkForCollision:
 	
 	jmp .noMapCollision
 	.whileSkip:
-	add si, 2           ;set si to the next entry in the entityArray
-	cmp si, entityArray+((entityArraySize-1)*2)
-	jl .whileLoop
-	.whileEnd
+		add si, 2           ;set si to the next entry in the entityArray
+		cmp si, entityArray+((entityArraySize-1)*2)
+		jl .whileLoop
+		.whileEnd
 
 	pusha
 	mov si, cx
@@ -150,10 +153,12 @@ checkForCollision:
 	call collideMap
 	popa
 	jnc .noMapCollision
-		;if we reach this point => actual collision
-		mov cx, [di+2]         ;set new x pos to current x pos => no movement
-		mov dx, [di+4]         ;set new z pos to current z pos => no movement
+
+	;if we reach this point => actual collision
+	mov cx, [di+2]         ;set new x pos to current x pos => no movement
+	mov dx, [di+4]         ;set new z pos to current z pos => no movement
 	.noMapCollision:
+	
 	mov byte [canWalk], 1
 	mov word [di]   ,bp  ;update the animation in use
 	mov word [di+2] ,cx  ;update x pos
@@ -162,6 +167,7 @@ checkForCollision:
 	ret
 
 canWalk db 0
+
 gameControls:
 	mov byte [canWalk], 0
 	mov di, player ;select the player as the main entity for "checkForCollision"
@@ -169,42 +175,46 @@ gameControls:
 	add al, byte [pressRightArrow]
 	cmp al, 0
 	jz .nokeyad
-		mov cx, word [player_PosX] ;set cx to player x
-		mov dx, word [player_PosZ] ;set dx to player z
-		mov bp, [player]           ;set bp to current animation
-		cmp byte [pressRightArrow], 1 ;try to move x+1 if 'd' is pressed and set animation accordingly, test other cases otherwise
-		jne .nd
-		inc cx
-		mov bp, playerImg_right
-		.nd:
+
+	mov cx, word [player_PosX] ;set cx to player x
+	mov dx, word [player_PosZ] ;set dx to player z
+	mov bp, [player]           ;set bp to current animation
+	cmp byte [pressRightArrow], 1 ;try to move x+1 if 'd' is pressed and set animation accordingly, test other cases otherwise
+	jne .nd
+	inc cx
+	mov bp, playerImg_right
+
+	.nd:
 		cmp byte [pressLeftArrow], 1 ;try to move x-1 if 'a' is pressed and set animation accordingly, test other cases otherwise
 		jne .na
 		dec cx
 		mov bp, playerImg_left
-		.na:
+
+	.na:
 		call checkForCollision ;check if player would collide on new position, if not change position to new position
 	.nokeyad:
-	mov al, byte [pressUpArrow]
-	add al, byte [pressDownArrow]
-	cmp al, 0
-	jz .nokeyws
-		mov cx, word [player_PosX] ;set cx to player x
-		mov dx, word [player_PosZ] ;set dx to player z
-		mov bp, [player]           ;set bp to current animation
-		cmp byte [pressUpArrow], 1 ;try to move z-1 if 'w' is pressed and set animation accordingly, test other cases otherwise
-		jne .nw
-		dec dx
-		mov bp, playerImg_back
-		.nw:
+		mov al, byte [pressUpArrow]
+		add al, byte [pressDownArrow]
+		cmp al, 0
+		jz .nokeyws
+
+	mov cx, word [player_PosX] ;set cx to player x
+	mov dx, word [player_PosZ] ;set dx to player z
+	mov bp, [player]           ;set bp to current animation
+	cmp byte [pressUpArrow], 1 ;try to move z-1 if 'w' is pressed and set animation accordingly, test other cases otherwise
+	jne .nw
+	dec dx
+	mov bp, playerImg_back
+	.nw:
 		cmp byte [pressDownArrow], 1 ;try to move z+1 if 's' is pressed and set animation accordingly, test other cases otherwise
 		jne .ns
 		inc dx
 		mov bp, playerImg_front
-		.ns:
+	.ns:
 		call checkForCollision ;check if player would collide on new position, if not change position to new position
 	.nokeyws:
-	cmp byte [canWalk], 0
-	jnz .noCollision
+		cmp byte [canWalk], 0
+		jnz .noCollision
 		mov word [player+6], 0 ;reset animation counter
 		ret
 	.noCollision:
@@ -225,35 +235,42 @@ pressSpacebar db 0
 
 keyboardINTListener: ;interrupt handler for keyboard events
 	pusha	
-		xor bx,bx ; bx = 0: signify key down event
-		inc bx
-		in al,0x60 ;get input to AX, 0x60 = ps/2 first port for keyboard
-		btr ax, 7 ;al now contains the key code without key pressed flag, also carry flag set if key up event
-		jnc .keyDown
-			dec bx ; bx = 1: key up event
+	xor bx,bx ; bx = 0: signify key down event
+	inc bx
+	in al,0x60 ;get input to AX, 0x60 = ps/2 first port for keyboard
+	btr ax, 7 ;al now contains the key code without key pressed flag, also carry flag set if key up event
+	jnc .keyDown
+	dec bx ; bx = 1: key up event
+
 		.keyDown:
-        cmp al,0x4b ;a
-        jne .check1
-            mov byte [cs:pressLeftArrow], bl ;use cs overwrite because we don't know where the data segment might point to
+        	cmp al,0x4b ;a
+        	jne .check1
+            
+			mov byte [cs:pressLeftArrow], bl ;use cs overwrite because we don't know where the data segment might point to
         .check1:
-        cmp al,0x4d ;d
-        jne .check2
+        	cmp al,0x4d ;d
+        	jne .check2
             mov byte [cs:pressRightArrow], bl
+
         .check2:
-        cmp al,0x48 ;w
-        jne .check3
+        	cmp al,0x48 ;w
+        	jne .check3
             mov byte [cs:pressUpArrow], bl
+
         .check3:
-        cmp al,0x50 ;s
-        jne .check4
-            mov byte [cs:pressDownArrow], bl
+        	cmp al,0x50 ;s
+        	jne .check4
+        	mov byte [cs:pressDownArrow], bl
+
         .check4:
-        cmp al,0x39 ;s
-        jne .check5
+        	cmp al,0x39 ;s
+        	jne .check5
             mov byte [cs:pressSpacebar], bl
+
         .check5:
-        mov al, 20h ;20h
-        out 20h, al ;acknowledge the interrupt so further interrupts can be handled again
+       		mov al, 20h ;20h
+        	out 20h, al ;acknowledge the interrupt so further interrupts can be handled again
+	
 	popa ;resume state to not modify something by accident
 	iret ;return from an interrupt routine
 	
@@ -296,6 +313,7 @@ addEntity:
 	popa
 	xor eax, eax   ; return 0 if successfully added
 	ret
+
 	.failed:
 		popa
 		xor eax, eax
@@ -322,7 +340,7 @@ drawBlock:
 	add bx, 50/2 - 12/2 - 1   ;relative to screen image drawing code for z position
 	call drawImage            ;draw image to buffer
 	.skip:
-	clc
+		clc
 	ret
 	
 ;set the position of the player to x=cx, z=dx
@@ -389,27 +407,29 @@ iterateMap:
 	mov cx, 0x0 ; map start x
 	mov dx, 0x0 ; map start y
 	.next:
-	mov al, [di]
-	test al, al
-	je .stop    ; stop when null terminator found
-	cmp al, ah
-	jne .skip   ; skip if the character is not the one this iteration is searching for
-	push ax     ; save the content of ax
-	call bp     ; call the specified function of this iteration
-	pop ax
-	jc .term    ; the carry flag determines if the specified function has found what it was searching for (and thus exits)
+		mov al, [di]
+		test al, al
+		je .stop    ; stop when null terminator found
+		cmp al, ah
+		jne .skip   ; skip if the character is not the one this iteration is searching for
+		push ax     ; save the content of ax
+		call bp     ; call the specified function of this iteration
+		pop ax
+		
+		jc .term    ; the carry flag determines if the specified function has found what it was searching for (and thus exits)
 	.skip:
 		inc di                           ; point to the next character
 		add cx, tileWidth                ; increase x pixel position
 		cmp cx, ASCIImapWidth*tileWidth  ; check if x position is at the end of the line
 		jl .next
+	
 	sub dx, tileWidth                    ; decrease y pixel position
 	xor cx, cx                           ; reset x position
 	jmp .next
 	.stop:
 		clc
 	.term:
-	ret
+		ret
 	
 ;si = player x, bx = player z, cx = block x, dx = block z
 blockCollison:
@@ -417,23 +437,28 @@ blockCollison:
 	push dx
 	sub cx, 8    ;subtract 8 because of hitbox
 	cmp cx, si ; (blockX-8 <= playerX)
-		jg .skip
+	
+	jg .skip
 	add cx, 8+8          ;add 8 because of hitbox
 	cmp cx, si ; (blockX+8 > playerX)
-		jle .skip
+	jle .skip
+	
 	sub dx, 10          ;subtract 10 because of hitbox
 	cmp dx, bx ; (blockZ-10 <= playerZ)
-		jg .skip
+	jg .skip
+	
 	add dx, 9+10         ;subtract 9 because of hitbox
 	cmp dx, bx ; (blockZ+9 > playerZ)
-		jle .skip
-		stc
-		jmp .end
+	jle .skip
+	
+	stc
+	
+	jmp .end
 	.skip:
 		clc
 	.end:
-	pop dx
-	pop cx
+		pop dx
+		pop cx
 	ret
 	
 %include "./src/buffer.asm"
