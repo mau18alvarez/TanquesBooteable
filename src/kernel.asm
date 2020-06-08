@@ -65,6 +65,7 @@ jmp gameLoop
 
 jmp $
 
+
 ;di = entity cx,dx = xpos,zpos
 drawEntity:
 	push dx
