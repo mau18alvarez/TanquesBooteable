@@ -164,38 +164,38 @@ canWalk db 0
 gameControls:
 	mov byte [canWalk], 0
 	mov di, player ;select the player as the main entity for "checkForCollision"
-	mov al, byte [pressA]
-	add al, byte [pressD]
+	mov al, byte [pressLeftArrow]
+	add al, byte [pressRightArrow]
 	cmp al, 0
 	jz .nokeyad
 		mov cx, word [player_PosX] ;set cx to player x
 		mov dx, word [player_PosZ] ;set dx to player z
 		mov bp, [player]           ;set bp to current animation
-		cmp byte [pressD], 1 ;try to move x+1 if 'd' is pressed and set animation accordingly, test other cases otherwise
+		cmp byte [pressRightArrow], 1 ;try to move x+1 if 'd' is pressed and set animation accordingly, test other cases otherwise
 		jne .nd
 		inc cx
 		mov bp, playerImg_right
 		.nd:
-		cmp byte [pressA], 1 ;try to move x-1 if 'a' is pressed and set animation accordingly, test other cases otherwise
+		cmp byte [pressLeftArrow], 1 ;try to move x-1 if 'a' is pressed and set animation accordingly, test other cases otherwise
 		jne .na
 		dec cx
 		mov bp, playerImg_left
 		.na:
 		call checkForCollision ;check if player would collide on new position, if not change position to new position
 	.nokeyad:
-	mov al, byte [pressW]
-	add al, byte [pressS]
+	mov al, byte [pressUpArrow]
+	add al, byte [pressDownArrow]
 	cmp al, 0
 	jz .nokeyws
 		mov cx, word [player_PosX] ;set cx to player x
 		mov dx, word [player_PosZ] ;set dx to player z
 		mov bp, [player]           ;set bp to current animation
-		cmp byte [pressW], 1 ;try to move z-1 if 'w' is pressed and set animation accordingly, test other cases otherwise
+		cmp byte [pressUpArrow], 1 ;try to move z-1 if 'w' is pressed and set animation accordingly, test other cases otherwise
 		jne .nw
 		dec dx
 		mov bp, playerImg_back
 		.nw:
-		cmp byte [pressS], 1 ;try to move z+1 if 's' is pressed and set animation accordingly, test other cases otherwise
+		cmp byte [pressDownArrow], 1 ;try to move z+1 if 's' is pressed and set animation accordingly, test other cases otherwise
 		jne .ns
 		inc dx
 		mov bp, playerImg_front
@@ -216,10 +216,12 @@ registerInterruptHandlers:
 	ret
 	
 ;; NEW KEYBOARD EVENT BASED CODE
-pressA db 0
-pressD db 0
-pressW db 0
-pressS db 0
+pressLeftArrow db 0
+pressRightArrow db 0
+pressUpArrow db 0
+pressDownArrow db 0
+pressSpacebar db 0
+
 keyboardINTListener: ;interrupt handler for keyboard events
 	pusha	
 		xor bx,bx ; bx = 0: signify key down event
@@ -229,24 +231,28 @@ keyboardINTListener: ;interrupt handler for keyboard events
 		jnc .keyDown
 			dec bx ; bx = 1: key up event
 		.keyDown:
-		cmp al,0x1e ;a
-		jne .check1         
-			mov byte [cs:pressA], bl ;use cs overwrite because we don't know where the data segment might point to
-		.check1:
-		cmp al,0x20 ;d
-		jne .check2
-			mov byte [cs:pressD], bl
-		.check2:
-		cmp al,0x11 ;w
-		jne .check3
-			mov byte [cs:pressW], bl
-		.check3:
-		cmp al,0x1f ;s
-		jne .check4
-			mov byte [cs:pressS], bl
-		.check4:
-		mov al, 20h ;20h
-		out 20h, al ;acknowledge the interrupt so further interrupts can be handled again 
+        cmp al,0x4b ;a
+        jne .check1
+            mov byte [cs:pressLeftArrow], bl ;use cs overwrite because we don't know where the data segment might point to
+        .check1:
+        cmp al,0x4d ;d
+        jne .check2
+            mov byte [cs:pressRightArrow], bl
+        .check2:
+        cmp al,0x48 ;w
+        jne .check3
+            mov byte [cs:pressUpArrow], bl
+        .check3:
+        cmp al,0x50 ;s
+        jne .check4
+            mov byte [cs:pressDownArrow], bl
+        .check4:
+        cmp al,0x39 ;s
+        jne .check5
+            mov byte [cs:pressSpacebar], bl
+        .check5:
+        mov al, 20h ;20h
+        out 20h, al ;acknowledge the interrupt so further interrupts can be handled again
 	popa ;resume state to not modify something by accident
 	iret ;return from an interrupt routine
 	
@@ -433,10 +439,10 @@ entityArray:
 
 ;player structure
 player:
-player_Anim  dw playerImg_front ;pointer to animation
-player_PosX  dw 0x32              ;position of player (x)
-player_PosZ  dw 0x32               ;position of player (z)
-player_AnimC dw 0               ;animation counter
+player_Anim  dw playerImg_front 	;pointer to animation
+player_PosX  dw 0x32              	;position of player (x)
+player_PosZ  dw 0x32               	;position of player (z)
+player_AnimC dw 0               	;animation counter
 
 ;entity structure
 box:
@@ -451,39 +457,27 @@ entityArrayMem:
 
 ;animation structure
 playerImg_front:
-	dw 5
-	dw 20
+	dw 1
+	dw 1
 	dw playerImg_front_0
-	dw playerImg_front_1
-	dw playerImg_front_0
-	dw playerImg_front_2
 	dw 0
 	
 playerImg_back:
-    dw 5
-	dw 20
+    dw 1
+	dw 1
 	dw playerImg_back_0
-	dw playerImg_back_1
-	dw playerImg_back_0
-	dw playerImg_back_2
 	dw 0
 	
 playerImg_right:
-    dw 5
-	dw 20
+    dw 1
+	dw 1
 	dw playerImg_right_0
-	dw playerImg_right_1
-	dw playerImg_right_0
-	dw playerImg_right_2
 	dw 0
 	
 playerImg_left:
-	dw 5
-	dw 20
+	dw 1
+	dw 1
 	dw playerImg_left_0
-	dw playerImg_left_1
-	dw playerImg_left_0
-	dw playerImg_left_2
 	dw 0
 	
 boxImg:
@@ -502,17 +496,10 @@ coinImg:
 	dw 0            ;zero end frame
 
 playerImg_front_0 incbin "img/player_front_0.bin"
-playerImg_front_1 incbin "img/player_front_1.bin"
-playerImg_front_2 incbin "img/player_front_2.bin"
 playerImg_back_0  incbin "img/player_back_0.bin"
-playerImg_back_1  incbin "img/player_back_1.bin"
-playerImg_back_2  incbin "img/player_back_2.bin"
 playerImg_right_0 incbin "img/player_right_0.bin"
-playerImg_right_1 incbin "img/player_right_1.bin"
-playerImg_right_2 incbin "img/player_right_2.bin"
 playerImg_left_0  incbin "img/player_left_0.bin"
-playerImg_left_1  incbin "img/player_left_1.bin"
-playerImg_left_2  incbin "img/player_left_2.bin"
+
 
 coin_0  incbin "img/coin_0.bin"
 coin_1  incbin "img/coin_1.bin"
