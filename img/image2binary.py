@@ -3,8 +3,8 @@ import sys
 
 palleteFile = "colors.png" #pallete the BIOS uses
 if len(sys.argv) < 2:
-    convertFile = "player_back_0.png" #image to turn into a binary
-    outputFile  = "player_back_0.bin" #name of output file
+    convertFile = "box.png" #image to turn into a binary
+    outputFile  = "box.bin" #name of output file
 elif len(sys.argv) < 3:
     convertFile = sys.argv[1]
     outputFile  = sys.argv[1]+".bin"

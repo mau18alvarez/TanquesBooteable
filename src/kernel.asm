@@ -2,7 +2,7 @@ org 0x8000
 bits 16 
 
 ;precompiler constant
-%define entityArraySize 16
+%define entityArraySize 128
 ;Let's begin by going into graphic mode
 call initGraphics
 
@@ -335,10 +335,21 @@ setSpawn:
 	
 ;spawn the coins add set the spawn position of the player
 initMap:
-	mov si, coinImg
+	;mov si, coinImg
+	;mov bp, addEntity
+	;mov ah, 'X'
+	;call iterateMap  ; iterate the map and add a coin at every 'X' on the map
+
+	mov si, boxImg1
 	mov bp, addEntity
-	mov ah, 'X'
-	call iterateMap  ; iterate the map and add a coin at every 'X' on the map
+	mov ah, 'M'
+	call iterateMap  ; iterate the map and add a coin at every 'M' on the map
+
+	mov si, eagleImg
+	mov bp, addEntity
+	mov ah, 'A'
+	call iterateMap  ; iterate the map and add an eagle at every 'A' on the map
+
 	call spawnPlayer ; set spawn for player
 	ret
 	
@@ -349,10 +360,10 @@ drawMap:
 	mov ah, '0'
 	call iterateMap ; iterate the map and add a box at every '0' on the map
 	;this second iteration is pretty unefficient but only optional for some ground texture
-	mov si, tileImg_0
-	mov bp, drawBlock
-	mov ah, ' '
-	call iterateMap ; iterate the map and add a tile at every ' ' on the map
+	;mov si, tileImg_0
+	;mov bp, drawBlock
+	;mov ah, ' '
+	;call iterateMap ; iterate the map and add a tile at every ' ' on the map
 	ret
 	
 ; si = player X, bx = player Y
@@ -486,6 +497,12 @@ boxImg:
 	dw 1            ;time of animation
 	dw boxImg_0     ;frames
 	dw 0            ;zero end frame
+
+boxImg1:
+	dw 1            ;time per frames
+	dw 1            ;time of animation
+	dw boxImg_1     ;frames
+	dw 0            ;zero end frame
 	
 coinImg:
 	dw 5            ;time per frames
@@ -496,17 +513,27 @@ coinImg:
 	dw coin_1       ;frames
 	dw 0            ;zero end frame
 
+eagleImg:
+	dw 1
+	dw 1
+	dw eagle_Img
+	dw 0
+
 playerImg_front_0 incbin "img/player_front_0.bin"
 playerImg_back_0  incbin "img/player_back_0.bin"
 playerImg_right_0 incbin "img/player_right_0.bin"
 playerImg_left_0  incbin "img/player_left_0.bin"
 
+eagle_Img  incbin "img/eagle.bin"
 
 coin_0  incbin "img/coin_0.bin"
 coin_1  incbin "img/coin_1.bin"
 coin_2  incbin "img/coin_2.bin"
 
 boxImg_0         incbin "img/box.bin"
+boxImg_1   		 incbin "img/box1.bin"
+
+
 tileImg_0        incbin "img/tile.bin"
 
 ASCIImap          incbin "img/map.bin"
