@@ -290,7 +290,17 @@ keyboardINTListener: ;interrupt handler for keyboard events
         	jne .check5
             mov byte [cs:pressSpacebar], bl
 
-        .check5:
+		.check5:
+			cmp al,0x26 										 ; l
+			jne .check6
+			mov byte [cs:pressL], bl
+
+		.check6:
+			cmp al,0x13     								 ; r
+			jne .check7
+			mov byte [cs:pressR], bl
+
+        .check7:
        		mov al, 20h ;20h
         	out 20h, al ;acknowledge the interrupt so further interrupts can be handled again
 	
