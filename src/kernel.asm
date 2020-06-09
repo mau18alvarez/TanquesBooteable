@@ -360,6 +360,11 @@ initMap:
 
 	mov si, enemyImg
 	mov bp, addEntity
+	mov ah, 'V'
+	call iterateMap  ; iterate the map and add a coin at every 'M' on the map
+
+	mov si, boxImg1
+	mov bp, addEntity
 	mov ah, 'M'
 	call iterateMap  ; iterate the map and add a coin at every 'M' on the map
 
