@@ -4,6 +4,7 @@ bits 16
 ;precompiler constant
 %define entityArraySize 128
 
+init:
 	;Let's begin by going into graphic mode
 	call initGraphics
 
@@ -159,22 +160,42 @@ checkForCollision:
 	mov dx, [di+4]         ;set new z pos to current z pos => no movement
 	.noMapCollision:
 	
-	mov byte [canWalk], 1
-	mov word [di]   ,bp  ;update the animation in use
-	mov word [di+2] ,cx  ;update x pos
-	mov word [di+4] ,dx  ;update y pos
-	popa                 ;reload old register state
-	ret
+		mov byte [canWalk], 1
+		mov word [di]   ,bp  ;update the animation in use
+		mov word [di+2] ,cx  ;update x pos
+		mov word [di+4] ,dx  ;update y pos
+		popa                 ;reload old register state
+		ret
 
+
+pauseGameFunc:
+	in al, 0x60
+	cmp al, 0x26
+	je pauseGame
+	jmp pauseGameFunc
+
+reset:
+	jmp init
 canWalk db 0
 
 gameControls:
-	mov byte [canWalk], 0
-	mov di, player ;select the player as the main entity for "checkForCollision"
-	mov al, byte [pressLeftArrow]
-	add al, byte [pressRightArrow]
+	mov al, byte [pressL]
 	cmp al, 0
-	jz .nokeyad
+	jz pauseGame
+	jmp pauseGameFunc
+
+	pauseGame:
+
+		mov al, byte [pressR]
+		cmp al, 1
+		jz reset
+
+		mov byte [canWalk], 0
+		mov di, player 		
+		mov al, byte [pressLeftArrow]
+		add al, byte [pressRightArrow]
+		cmp al, 0
+		jz .nokeyad
 
 	mov cx, word [player_PosX] ;set cx to player x
 	mov dx, word [player_PosZ] ;set dx to player z
@@ -232,6 +253,8 @@ pressRightArrow db 0
 pressUpArrow db 0
 pressDownArrow db 0
 pressSpacebar db 0
+pressL db 0
+pressR db 0
 
 keyboardINTListener: ;interrupt handler for keyboard events
 	pusha	
@@ -358,9 +381,20 @@ initMap:
 	;mov ah, 'X'
 	;call iterateMap  ; iterate the map and add a coin at every 'X' on the map
 
-	mov si, enemyImg
+	mov si, enemyImg_0
 	mov bp, addEntity
 	mov ah, 'V'
+	call iterateMap  ; iterate the map and add a coin at every 'M' on the map
+
+	mov si, enemyImg_1
+	mov bp, addEntity
+	mov ah, 'W'
+	call iterateMap  ; iterate the map and add a coin at every 'M' on the map
+
+
+	mov si, boxImg1
+	mov bp, addEntity
+	mov ah, 'M'
 	call iterateMap  ; iterate the map and add a coin at every 'M' on the map
 
 	mov si, boxImg1
@@ -549,7 +583,13 @@ eagleImg:
 	dw eagle_Img
 	dw 0
 
-enemyImg:
+
+enemyImg_1:
+	dw 1
+	dw 1
+	dw enemy_Img_1
+	dw 0
+enemyImg_0:
 	dw 1
 	dw 1
 	dw enemy_Img
@@ -559,6 +599,8 @@ enemyImg:
 
 playerImg_front_0 incbin "img/player_front_0.bin"
 playerImg_back_0  incbin "img/player_back_0.bin"
+
+enemy_Img_1	incbin "img/enemyDown.bin"
 playerImg_right_0 incbin "img/player_right_0.bin"
 playerImg_left_0  incbin "img/player_left_0.bin"
 
