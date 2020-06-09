@@ -358,7 +358,7 @@ initMap:
 	;mov ah, 'X'
 	;call iterateMap  ; iterate the map and add a coin at every 'X' on the map
 
-	mov si, boxImg1
+	mov si, enemyImg
 	mov bp, addEntity
 	mov ah, 'M'
 	call iterateMap  ; iterate the map and add a coin at every 'M' on the map
@@ -544,11 +544,21 @@ eagleImg:
 	dw eagle_Img
 	dw 0
 
+enemyImg:
+	dw 1
+	dw 1
+	dw enemy_Img
+	dw 0
+
+
+
 playerImg_front_0 incbin "img/player_front_0.bin"
 playerImg_back_0  incbin "img/player_back_0.bin"
 playerImg_right_0 incbin "img/player_right_0.bin"
 playerImg_left_0  incbin "img/player_left_0.bin"
 
+
+enemy_Img	incbin "img/enemyTop.bin"
 eagle_Img  incbin "img/eagle.bin"
 
 coin_0  incbin "img/coin_0.bin"
