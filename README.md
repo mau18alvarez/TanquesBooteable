@@ -19,12 +19,34 @@ El tanque se moverá en las direcciones que le indique el usuario, los posibles 
 • L: Pausa el juego y lo reanuda de la misma manera.
 • R: Reinicia el juego.
 
+## Requerimientos
+
+1. Instalar nasm para linux:
+
+```bash
+sudo apt intall nasm
+```
+
+2. Instalar qemu para linux:
+
+```bash
+sudo apt intall qemu
+```
+
 ## Instalación
 
-* Para correr en Qemu sin ser booteable
-```
+1. Para correr en Qemu sin ser booteable
+
+```bash
 make
 ```
+
+2. Para hacer el USB booteable se debe descargar el programa HDD raw copy en el cual
+
+* Se selecciona el archivo de ./bin/booteable_tanks.bin
+* Se selecciona el USB a formatear.
+* Se presiona start.
+
 
 ## Contribuyendo
 * [Mauricio Álvarez Varela.](https://github.com/mau18alvarez)
