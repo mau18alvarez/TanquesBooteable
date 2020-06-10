@@ -1,4 +1,7 @@
-#  Tanques booteable
+Basado en el repositorio del usuario de github Pusty
+[realmode-assembly](https://github.com/Pusty/realmode-assembly/tree/master/part7)
+
+##  Tanques booteable
 
 La idea fundamental de este juego es crear una serie de laberintos u obstáculos por los cuales una cierta cantidad de tanques buscarán matar un águila la cual está protegida por paredes, las cuales se desvanecerán si reciben balan por parte de la casa.
 
